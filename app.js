@@ -8,7 +8,8 @@ const schema = buildSchema(`
   type Query {
     hello: String,
     chuck: ChuckNorris,
-    git: Git
+    git(page: Int): Git,
+    movie(query: String!): MovieSearch
   },
   type ChuckNorris {
     icon_url: String,
@@ -34,8 +35,20 @@ const schema = buildSchema(`
     login: String,
     avatar_url: String,
     html_url: String
+   },
+   type MovieSearch {
+    Response: Boolean,
+    Search: [Movie],
+    totalResults: String
+   },
+   type Movie {
+    Poster: String,
+    Title: String,
+    Year: String,
+    imdbID: String
    }
 `);
+
 
 // The root provides a resolver function for each API endpoint
 const root = {
@@ -43,12 +56,20 @@ const root = {
         return 'Hello world!';
     },
     chuck:  () => {
+        console.log(' Calling Chuck Norris API');
         return fetch("https://api.chucknorris.io/jokes/random", {method: "GET"})
             .then(res => res.json())
             .catch(err => console.log(err))
     },
-    git: () => {
-        return fetch("https://api.github.com/search/repositories?q=language:javascript&sort=stars&order=desc&per_page=100", {method: "GET"})
+    git: (args) => {
+        console.log(' Calling Git API');
+        return fetch(`https://api.github.com/search/repositories?q=language:javascript&sort=stars&order=desc&per_page=20&page=${args.page ? args.page : '1'}`, {method: "GET"})
+            .then(res => res.json())
+            .catch(err => console.log(err))
+    },
+    movie: (args) => {
+        console.log(' Calling OMDB API');
+        return fetch(`http://www.omdbapi.com/?apikey=79bd8f50&s=${args.query}`, {method: "GET"})
             .then(res => res.json())
             .catch(err => console.log(err))
     }
